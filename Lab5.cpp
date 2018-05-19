@@ -10,7 +10,7 @@
 //
 // Template author: Mike Goss (mikegoss@cs.du.edu)
 //
-// Student name: [your name here]
+// Student name: Jeff Bordiga
 
 #include <fstream>
 #include <iostream>
@@ -32,6 +32,7 @@ const int kMaxResources = 50;  // maximum number of resources
 int Available[kMaxResources];
 int Allocation[kMaxProcesses][kMaxResources];
 int Request[kMaxProcesses][kMaxResources];
+bool markedProcesses[kMaxProcesses];
 
 int numProcesses;   // actual number of processes
 int numResources;   // actual number of resources
@@ -41,33 +42,77 @@ int numResources;   // actual number of resources
 // @param i - index of row in Request array
 // @returns true if every element of Request[i] is <= corresponding element
 //          of Available, false otherwise.
-bool IsRequestLessEqual(int i) {
-  bool result = true;
-  //
-  // TODO: implement this function
-  //
-  cout << "IsRequestLessEqual not implemented yet!\n";
-  return result;
+bool IsRequestLessEqual(int i) { //
+    
+    bool result = true;
+    
+    int requestSize = 0;
+    int availableSize = 0;
+    
+    for(int count1 : Request[i]){ //
+        requestSize++;
+    }
+    
+    for(int count2 : Available){
+        availableSize++;
+    }
+  
+    for(int j = 0; j < requestSize; ++j){
+        
+        if(Request[i][j] > Available[j]){
+            result = false;
+        }
+        
+    }
+   
+    return result;
+  
 }
 
 // AddToAvailable - add each element in Allocation[i] to corresponding
 //   element in Available
 //
 // @param i - index of row in Allocation array
-void AddToAvailable(int i) {
-  //
-  // TODO: implement this function
-  //
-  cout << "AddToAvailable not implemented yet!\n";
+void AddToAvailable(int i) { //
+    
+    int allocationSize = 0;
+    
+    for(int count1 : Allocation[i]){
+        allocationSize++;
+    }
+    
+    for(int j = 0; j < allocationSize; ++j){
+        
+        Available[j] += Allocation[i][j];
+        
+    }
+    
 }
 
 // PrintDeadlocks - print indices of deadlocked processes
 //
 void PrintDeadlocks(void) {
-  //
-  // TODO: implement this function
-  //
-  cout << "PrintDeadlocks not implemented yet!\n";
+
+    int markedSize = 0;
+    
+    for(int count1 : markedProcesses){
+        markedSize++;
+    }
+    
+    std::cout << "\n";
+    std::cout << "Deadlocked processes:";
+    
+    for(int j = 0; j < numProcesses; ++j){
+        
+        if(markedProcesses[j] == false){
+            std::cout << " " << j;
+        }
+       
+    }
+
+    std::cout << "\n";
+    std::cout << "\n";
+    
 }
 
 // ReadSystemConfig - read the system configuration from the
@@ -122,7 +167,7 @@ void ReadSystemConfig(const char *fileName) {
     for (int j = 0; j < numResources; ++j) {
       in >> Allocation[i][j];
       if (in.fail()) {
-        cerr << "ERROR: failed to read Alocation[" << i << "][" << j << "]\n";
+        cerr << "ERROR: failed to read Allocation[" << i << "][" << j << "]\n";
         exit(2);
       }
     }
@@ -159,13 +204,39 @@ void ReadSystemConfig(const char *fileName) {
 } // namespace
 
 int main(int argc, char *argv[]) {
-  // Read system configuration
-  if (argc != 2) {
-    cerr << "usage: lab5 filename\n";
-    exit(1);
-  }
-  ReadSystemConfig(argv[1]);
-  PrintDeadlocks();
+  
+    // Read system configuration
 
-  return 0;
+    if (argc != 4) {
+      cerr << "usage: Lab5 filename\n";
+      exit(1);
+    }
+    
+    for(int fileNum = 1; fileNum < argc; ++fileNum){
+        
+        ReadSystemConfig(argv[fileNum]);
+
+        // Run deadlock detection algorithm
+
+        for(int i = 0; i < numProcesses; ++i){
+            markedProcesses[i] = false; 
+        }
+
+        for(int j = 0; j < numProcesses; ++j){
+
+            if(IsRequestLessEqual(j) == true){
+
+                AddToAvailable(j);
+                markedProcesses[j] = true;
+
+            }
+
+        }
+        
+        PrintDeadlocks();
+
+    }
+    
+    return 0;
+    
 }
